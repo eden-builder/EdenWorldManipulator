@@ -9,6 +9,7 @@ using System.IO;
 using System.Net;
 using System.IO.Compression;
 using System.Drawing.Imaging;
+using System.Threading.Tasks;
 
 namespace Eden_World_Maniputor_2._0
 {
@@ -52,6 +53,7 @@ namespace Eden_World_Maniputor_2._0
 
             comboBox6.Items.Add("Normal Map");
             comboBox6.Items.Add("Z Slice");
+            // Y and X don't work tresure does work just didn't think it was right
             //comboBox1.Items.Add("Y Slice");
             //comboBox1.Items.Add("X Slice");
             //comboBox6.Items.Add("Treasure Map");
@@ -136,7 +138,7 @@ namespace Eden_World_Maniputor_2._0
                 }
                 if (tabControl1.Controls[0] == tabControl1.SelectedTab)
                 {
-                    pictureBox1.Image = ResizeImage(m_Canvas, (int)Math.Round(m_Canvas.Width * zoom), (int)Math.Round(m_Canvas.Height * zoom));
+                    pictureBox1.Image = ResizeImage(m_Canvas, (int)Math.Round(Manipulator.X2 * zoom), (int)Math.Round(Manipulator.Y2 * zoom));
                     label4.Text = string.Format("x {0}", zoom.ToString());
                 }
                 else if (tabControl1.Controls[2] == tabControl1.SelectedTab)
@@ -230,7 +232,11 @@ namespace Eden_World_Maniputor_2._0
         {
             Manipulator.Density = TrackBar2.Value / 10;
             Manipulator.Xmin = world.WorldArea.Width * 16; Manipulator.Xmax = 0; Manipulator.Ymin = world.WorldArea.Height * 16; Manipulator.Ymax = 0;
-
+            Console.WriteLine(Manipulator.X1);
+            Console.WriteLine("X1 = {0} X2 = {1} Y1 = {2} Y2 = {3} Z1 = {4} Z2 = {5}", Manipulator.X1, Manipulator.X2, Manipulator.Y1, Manipulator.Y2, Manipulator.Z1, Manipulator.Z2);
+            Console.WriteLine("Xmin = {0} Xmax = {1} Ymin = {2} Ymax = {3}", Manipulator.Xmin, Manipulator.Xmax, Manipulator.Ymin, Manipulator.Ymax);
+            Console.WriteLine("X1.1 = {0} X2.1 = {1} Y1.1 = {2} Y2.1 = {3} Z1 = {4} Z2 = {5}", Manipulator.xYxY[0], Manipulator.xYxY[1], Manipulator.xYxY[2], Manipulator.xYxY[3], Manipulator.Z1, Manipulator.Z2);
+            
             if (comboBox1.SelectedItem != null)
             {
                 if (Manipulator.xYxY.Count == 0)
@@ -306,8 +312,8 @@ namespace Eden_World_Maniputor_2._0
             MessageBox.Show("Manipulation done!");
             Manipulator.smallpine = false; Manipulator.largepine = false; Manipulator.normalterrain = false; Manipulator.normal = false;
             button4.Enabled = true;
-            /*string selected = comboBox1.SelectedItem.ToString();
-            Task.Factory.StartNew(() => Manipulator.Manipulate(this.world, Manipulator.Manipulations[selected]))
+            /*string select = comboBox1.SelectedItem.ToString();
+            Task.Factory.StartNew(() => Manipulator.Manipulate(world, Manipulator.Manipulations[select], openFileDialog1.FileName))
                 .ContinueWith(t => MessageBox.Show("Manipulation done!"));*/
         }
         
@@ -318,6 +324,7 @@ namespace Eden_World_Maniputor_2._0
 
         private void Button6_Click(object sender, EventArgs e)
         {
+            Mapping.block = 0;
             move = false; rotate = false;
             button7.Enabled = false;
             Manipulator.Xmin = world.WorldArea.Width * 16; Manipulator.Xmax = 0; Manipulator.Ymin = world.WorldArea.Height * 16; Manipulator.Ymax = 0;
@@ -336,7 +343,7 @@ namespace Eden_World_Maniputor_2._0
 
         private void Draw(World world)
         {
-            Manipulator.X1 = 0; Manipulator.X2 = world.WorldArea.Width * 16; Manipulator.Y1 = 0; Manipulator.Y2 = world.WorldArea.Height * 16; Manipulator.Z1 = 0; Manipulator.Z2 = 64;
+            Manipulator.X1 = 0; Manipulator.X2 = world.WorldArea.Width * 16; Manipulator.Y1 = 0; Manipulator.Y2 = world.WorldArea.Height * 16;
             m_Canvas = new Bitmap(Manipulator.X2, Manipulator.Y2);
             m_Canvas = Mapping.NormalMap(world, m_Canvas);
             m_Canvas.RotateFlip(RotateFlipType.Rotate180FlipNone);
@@ -347,10 +354,10 @@ namespace Eden_World_Maniputor_2._0
 
         private Rectangle GetRectangle()
         {
-            Manipulator.X1 = Convert.ToInt32(Math.Round((world.WorldArea.Width * 16) - ((Math.Max(startPos.X, currentPos.X)) / zoom)));
-            Manipulator.Y1 = Convert.ToInt32(Math.Round((world.WorldArea.Height * 16) - ((Math.Max(startPos.Y, currentPos.Y)) / zoom)));
-            Manipulator.X2 = Convert.ToInt32(Math.Round(Manipulator.X1 + (Math.Abs(startPos.X - currentPos.X)) / zoom));
-            Manipulator.Y2 = Convert.ToInt32(Math.Round(Manipulator.Y1 + (Math.Abs(startPos.Y - currentPos.Y)) / zoom));
+            Manipulator.X1 = (int)Math.Floor((world.WorldArea.Width * 16) - ((Math.Max(startPos.X, currentPos.X)) / zoom));
+            Manipulator.Y1 = (int)Math.Floor((world.WorldArea.Height * 16) - ((Math.Max(startPos.Y, currentPos.Y)) / zoom));
+            Manipulator.X2 = (int)Math.Ceiling(Manipulator.X1 + (Math.Abs(startPos.X - currentPos.X)) / zoom);
+            Manipulator.Y2 = (int)Math.Ceiling(Manipulator.Y1 + (Math.Abs(startPos.Y - currentPos.Y)) / zoom);
 
             Moved.X = Math.Min(startPos.X, currentPos.X);
             Moved.Y = Math.Min(startPos.Y, currentPos.Y);
@@ -549,6 +556,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     groupBox2.Enabled = true;
                     groupBox3.Enabled = true;
                     groupBox4.Enabled = true;
@@ -594,6 +602,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     button5.Enabled = true;
                     comboBox7.Enabled = true;
                     comboBox8.Enabled = true;
@@ -617,6 +626,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     button5.Enabled = true;
                     button7.Enabled = true;
                     comboBox7.Enabled = true;
@@ -640,6 +650,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     comboBox7.Enabled = true;
                     comboBox8.Enabled = true;
                     groupBox5.Enabled = false;
@@ -663,6 +674,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Sea Floor";
                     comboBox3.SelectedIndex = 4;
                     comboBox8.SelectedIndex = 31;
+                    comboBox7.SelectedIndex = 0;
                     comboBox7.Enabled = true;
                     comboBox8.Enabled = true;
                     groupBox2.Enabled = true;
@@ -685,6 +697,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     comboBox7.Enabled = false;
                     comboBox8.Enabled = false;
                     groupBox2.Enabled = false;
@@ -708,6 +721,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     comboBox7.Enabled = true;
                     comboBox8.Enabled = true;
                     groupBox2.Enabled = false;
@@ -731,6 +745,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     checkedListBox1.Enabled = true;
                     comboBox7.Enabled = false;
                     button12.Enabled = true;
@@ -754,6 +769,7 @@ namespace Eden_World_Maniputor_2._0
                     label3.Text = "Block Types";
                     comboBox3.SelectedIndex = 0;
                     comboBox8.SelectedIndex = 63;
+                    comboBox7.SelectedIndex = 0;
                     checkedListBox1.Enabled = false;
                     comboBox9.Enabled = false;
                     TrackBar2.Enabled = false;
@@ -901,8 +917,6 @@ namespace Eden_World_Maniputor_2._0
 
         private void Drawing(World world)
         {
-            Manipulator.X1 = 0; Manipulator.X2 = world.WorldArea.Width * 16; Manipulator.Y1 = 0; Manipulator.Y2 = world.WorldArea.Height * 16; Manipulator.Z1 = 0; Manipulator.Z2 = 64;
-
             if (comboBox6.SelectedItem != null)
             {
                 var item = comboBox6.SelectedItem.ToString();
@@ -1027,8 +1041,8 @@ namespace Eden_World_Maniputor_2._0
 
         public static Bitmap ResizeImage(Image image, int width, int height)
         {
-            var destRect = new Rectangle(0, 0, width, height);
-            var destImage = new Bitmap(width, height);
+            Rectangle destRect = new Rectangle(0, 0, width, height);
+            Bitmap destImage = new Bitmap(width, height);
 
             destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
 
